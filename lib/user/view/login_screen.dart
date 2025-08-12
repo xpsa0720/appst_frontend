@@ -23,6 +23,10 @@ class LoginScreen extends ConsumerStatefulWidget {
 class _LoginScreenState extends ConsumerState<LoginScreen> {
   late TextEditingController email_controller;
   late TextEditingController password_controller;
+  bool login_is_emtpy = false;
+  bool password_is_emtpy = false;
+  bool login_wrong = false;
+  String message = "";
 
   @override
   void initState() {
@@ -69,12 +73,33 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
               SizedBox(width: 10),
               BoxButtonComponent(
                 onPressed: () async {
+                  if (email_controller.text == "") {
+                    setState(() {
+                      login_is_emtpy = true;
+                    });
+                    return;
+                  } else
+                    login_is_emtpy = false;
+
+                  if (password_controller.text == "") {
+                    setState(() {
+                      password_is_emtpy = true;
+                    });
+                    return;
+                  } else
+                    password_is_emtpy = false;
                   final resp = await ref
                       .read(userProvider.notifier)
                       .login(
                         email: email_controller.text,
                         password: password_controller.text,
                       );
+                  if (resp is UserModelError) {
+                    setState(() {
+                      message = resp.message;
+                    });
+                  } else
+                    message = "";
                 },
                 width: 110,
                 height: 100,
@@ -85,7 +110,12 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
               ),
             ],
           ),
-
+          if (login_is_emtpy)
+            TextComponent(text: "아이디를 입력해 주세요!", color: Colors.red),
+          if (password_is_emtpy)
+            TextComponent(text: "비밀번호를 입력해 주세요!", color: Colors.red),
+          if (message.isNotEmpty)
+            TextComponent(text: message, color: Colors.red),
           SizedBox(height: height * 0.3),
         ],
       ),
